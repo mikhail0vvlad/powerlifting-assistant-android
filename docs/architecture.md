@@ -7,4 +7,4 @@ Clean Architecture, three layers:
 - `data/` — Retrofit API, repositories, mappers, cache, Firebase auth
 
 Single-activity, typed Navigation. Backend: Ktor, see
-[server repo](https://github.com/<you>/powerlifting-assistant-server).
+[server repo](https://github.com/mikhail0vvlad/powerlifting-assistant-server).
