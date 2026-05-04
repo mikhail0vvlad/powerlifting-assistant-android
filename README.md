@@ -86,34 +86,6 @@ notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 
 ---
 
-## Быстрый старт
-
-### 1. Firebase
-
-Замените заглушку на свой конфигурационный файл:
-
-```
-app/google-services.json   ← ваш файл из Firebase Console
-```
-
-> Текущий файл в репозитории — **заглушка**. Авторизация не будет работать без реального Firebase-проекта.
-
-### 2. URL сервера
-
-По умолчанию приложение обращается к `http://10.0.2.2:8080/` (эмулятор → localhost).
-
-Для подключения к удалённому серверу передайте Gradle-property при сборке:
-
-```bash
-./gradlew :app:assembleDebug -PPOWERLIFT_SERVER_BASE_URL="https://your-server.example.com/"
-```
-
-### 3. HTTP (cleartext)
-
-В `AndroidManifest.xml` включено `android:usesCleartextTraffic="true"` для работы с локальным `http://`-сервером. При деплое на продакшн используйте HTTPS и отключите этот флаг.
-
----
-
 ## Тесты
 
 ```bash
