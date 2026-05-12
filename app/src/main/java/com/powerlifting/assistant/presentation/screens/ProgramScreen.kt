@@ -3,12 +3,13 @@ package com.powerlifting.assistant.presentation.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -20,6 +21,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -205,8 +207,9 @@ fun ProgramScreen(vm: ProgramViewModel = hiltViewModel()) {
     }
 
     rescheduleWorkout?.let { w ->
-        DatePickerDialogSheet(
+        DatePickerModal(
             initialDate = parseLocalDate(w.date) ?: LocalDate.now(),
+            confirmText = "Перенести",
             onDismiss = { rescheduleWorkout = null },
             onPick = { picked ->
                 vm.reschedule(w.id, picked)
@@ -341,31 +344,27 @@ private fun CreateProgramDialog(
     onDismiss: () -> Unit,
     onConfirm: (LocalDate, Int, Set<DayOfWeek>) -> Unit
 ) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = LocalDate.now()
-            .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    )
     var weeks by remember { mutableStateOf(4) }
     var selectedDays by remember {
         mutableStateOf(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY))
     }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Создать программу") },
+        title = { Text("Создать программу", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(SectionSpacing)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(ControlSpacing)) {
                     Text(
-                        "Тренировочные дни недели:",
+                        "Тренировочные дни недели",
                         style = MaterialTheme.typography.titleSmall
                     )
-                    FlowWeekdayPicker(
+                    WeekdayGrid(
                         selected = selectedDays,
                         onToggle = { day ->
                             selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
@@ -389,56 +388,117 @@ private fun CreateProgramDialog(
 
                 Column(verticalArrangement = Arrangement.spacedBy(ControlSpacing)) {
                     Text(
-                        "Дата старта:",
+                        "Дата старта",
                         style = MaterialTheme.typography.titleSmall
                     )
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        DatePicker(
-                            state = datePickerState,
-                            showModeToggle = false,
-                            title = null,
-                            headline = null
-                        )
-                    }
+                    DateField(
+                        date = selectedDate,
+                        onClick = { showDatePicker = true }
+                    )
                 }
             }
         },
         confirmButton = {
             TextButton(
-                enabled = selectedDays.isNotEmpty() && datePickerState.selectedDateMillis != null,
-                onClick = {
-                    val millis = datePickerState.selectedDateMillis ?: return@TextButton
-                    val date = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault()).toLocalDate()
-                    onConfirm(date, weeks, selectedDays)
-                }
+                enabled = selectedDays.isNotEmpty(),
+                onClick = { onConfirm(selectedDate, weeks, selectedDays) }
             ) { Text("Создать") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     )
+
+    if (showDatePicker) {
+        DatePickerModal(
+            initialDate = selectedDate,
+            confirmText = "Выбрать",
+            onDismiss = { showDatePicker = false },
+            onPick = {
+                selectedDate = it
+                showDatePicker = false
+            }
+        )
+    }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FlowWeekdayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
+private fun WeekdayGrid(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
     val order = listOf(
-        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
-        DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
+        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
     )
-    FlowRow(
+    val columns = 4
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ControlSpacing),
         verticalArrangement = Arrangement.spacedBy(ControlSpacing)
     ) {
-        order.forEach { day ->
-            val label = day.getDisplayName(TextStyle.SHORT, Locale("ru")).take(2)
-            FilterChip(
-                selected = day in selected,
-                onClick = { onToggle(day) },
-                label = { Text(label) }
+        order.chunked(columns).forEach { rowDays ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ControlSpacing)
+            ) {
+                rowDays.forEach { day ->
+                    WeekdayChip(
+                        day = day,
+                        selected = day in selected,
+                        onToggle = onToggle,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                repeat(columns - rowDays.size) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekdayChip(
+    day: DayOfWeek,
+    selected: Boolean,
+    onToggle: (DayOfWeek) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val label = day.getDisplayName(TextStyle.SHORT, Locale("ru")).take(2)
+    FilterChip(
+        selected = selected,
+        onClick = { onToggle(day) },
+        label = {
+            Text(
+                label,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateField(date: LocalDate, onClick: () -> Unit) {
+    val formatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru")) }
+    OutlinedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = SectionSpacing, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ControlSpacing)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CalendarMonth,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                date.format(formatter),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -446,8 +506,9 @@ private fun FlowWeekdayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) ->
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DatePickerDialogSheet(
+private fun DatePickerModal(
     initialDate: LocalDate,
+    confirmText: String,
     onDismiss: () -> Unit,
     onPick: (LocalDate) -> Unit
 ) {
@@ -465,7 +526,7 @@ private fun DatePickerDialogSheet(
                         .atZone(ZoneId.systemDefault()).toLocalDate()
                     onPick(date)
                 }
-            ) { Text("Перенести") }
+            ) { Text(confirmText) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     ) {
