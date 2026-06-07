@@ -1,14 +1,18 @@
 package com.powerlifting.assistant.di
 
 import com.powerlifting.assistant.data.repo.AchievementsRepositoryImpl
+import com.powerlifting.assistant.data.repo.FoodRepositoryImpl
 import com.powerlifting.assistant.data.repo.NutritionRepositoryImpl
 import com.powerlifting.assistant.data.repo.ProfileRepositoryImpl
 import com.powerlifting.assistant.data.repo.ProgramRepositoryImpl
+import com.powerlifting.assistant.data.repo.SettingsRepositoryImpl
 import com.powerlifting.assistant.data.repo.WorkoutRepositoryImpl
 import com.powerlifting.assistant.domain.repository.AchievementsRepository
+import com.powerlifting.assistant.domain.repository.FoodRepository
 import com.powerlifting.assistant.domain.repository.NutritionRepository
 import com.powerlifting.assistant.domain.repository.ProfileRepository
 import com.powerlifting.assistant.domain.repository.ProgramRepository
+import com.powerlifting.assistant.domain.repository.SettingsRepository
 import com.powerlifting.assistant.domain.repository.WorkoutRepository
 import dagger.Binds
 import dagger.Module
@@ -39,4 +43,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAchievementsRepository(impl: AchievementsRepositoryImpl): AchievementsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFoodRepository(impl: FoodRepositoryImpl): FoodRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 }

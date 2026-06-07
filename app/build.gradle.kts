@@ -20,14 +20,38 @@ android {
 
         testInstrumentationRunner = "com.powerlifting.assistant.HiltTestRunner"
         vectorDrawables { useSupportLibrary = true }
+    }
 
-        // Base URL for Ktor server
-        // Use 10.0.2.2 for emulator, or your computer's IP (e.g., 192.168.1.38) for real device
-        // For cloudpub tunnel: use https://<your-tunnel-url>/
-        val baseUrl = (project.findProperty("POWERLIFT_SERVER_BASE_URL") as String?)
-            ?: "https://sourly-benevolent-sanderling.cloudpub.ru/" // cloudpub tunnel
+    // Base URL for the Ktor server. Pass via Gradle property:
+    //   ./gradlew -PPOWERLIFT_SERVER_BASE_URL=https://api.example.com/ assembleRelease
+    // For local dev (emulator): use 10.0.2.2, or your LAN IP for real devices.
+    val serverBaseUrlProp = (project.findProperty("POWERLIFT_SERVER_BASE_URL") as String?)
+    val devFallbackBaseUrl = "https://sourly-benevolent-sanderling.cloudpub.ru/"
 
-        buildConfigField("String", "SERVER_BASE_URL", "\"$baseUrl\"")
+    buildTypes {
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "SERVER_BASE_URL",
+                "\"${serverBaseUrlProp ?: devFallbackBaseUrl}\""
+            )
+        }
+        getByName("release") {
+            // Release builds: prefer the explicit property; otherwise fall back
+            // to the dev URL but warn loudly. The gradle.taskGraph check below
+            // hard-fails any `assembleRelease`/`bundleRelease` without the prop.
+            buildConfigField(
+                "String",
+                "SERVER_BASE_URL",
+                "\"${serverBaseUrlProp ?: devFallbackBaseUrl}\""
+            )
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
 
     buildFeatures {
@@ -125,5 +149,22 @@ kapt {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "17"
+    }
+}
+
+// Hard-fail a release build if POWERLIFT_SERVER_BASE_URL was not passed. We
+// fall back to the dev tunnel URL at config time so debug variants still work,
+// but it's a footgun to ship that fallback to play store — refuse to package
+// the release artifacts without an explicit prod URL.
+gradle.taskGraph.whenReady {
+    val isReleaseAssembly = allTasks.any { task ->
+        val name = task.name
+        (name.startsWith("assemble") || name.startsWith("bundle")) && name.contains("Release")
+    }
+    if (isReleaseAssembly && !project.hasProperty("POWERLIFT_SERVER_BASE_URL")) {
+        throw GradleException(
+            "POWERLIFT_SERVER_BASE_URL must be set for release builds. " +
+                "Example: ./gradlew -PPOWERLIFT_SERVER_BASE_URL=https://api.example.com/ assembleRelease"
+        )
     }
 }

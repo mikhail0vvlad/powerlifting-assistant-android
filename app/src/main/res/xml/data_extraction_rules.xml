@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ data-extraction rules. Excludes EVERYTHING from both cloud
+  backup and device-to-device transfer. Firebase auth state and DataStore
+  preferences should not survive a reinstall — force re-auth instead.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>

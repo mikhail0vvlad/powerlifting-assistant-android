@@ -5,11 +5,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.powerlifting.assistant.domain.model.ProfileUpdate
 import com.powerlifting.assistant.presentation.viewmodel.ProfileViewModel
+import com.powerlifting.assistant.presentation.viewmodel.SettingsViewModel
 
 @Composable
 fun ProfileScreen(
@@ -17,9 +19,11 @@ fun ProfileScreen(
     onOpenProgram: () -> Unit,
     onOpenAchievements: () -> Unit,
     onOpenCaloriesTracker: () -> Unit,
-    vm: ProfileViewModel = hiltViewModel()
+    vm: ProfileViewModel = hiltViewModel(),
+    settingsVm: SettingsViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val darkTheme by settingsVm.darkTheme.collectAsState()
 
     LaunchedEffect(Unit) {
         vm.load()
@@ -104,6 +108,25 @@ fun ProfileScreen(
 
                     if (state.saved) {
                         Text("Сохранено", color = MaterialTheme.colorScheme.tertiary)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            ElevatedCard(shape = MaterialTheme.shapes.large) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Оформление", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Тёмная тема")
+                        Switch(
+                            checked = darkTheme,
+                            onCheckedChange = { settingsVm.setDarkTheme(it) }
+                        )
                     }
                 }
             }
