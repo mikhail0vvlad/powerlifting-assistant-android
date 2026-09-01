@@ -10,17 +10,30 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.powerlifting.assistant.domain.model.NutritionEntry
 import com.powerlifting.assistant.presentation.viewmodel.CaloriesViewModel
 
 @Composable
-fun CaloriesTrackerScreen(vm: CaloriesViewModel = hiltViewModel()) {
+fun CaloriesTrackerScreen(
+    onAddMeal: () -> Unit = {},
+    vm: CaloriesViewModel = hiltViewModel()
+) {
     val state by vm.state.collectAsState()
 
-    LaunchedEffect(Unit) {
-        vm.load()
+    // Перезагружаем данные при каждом возврате на экран (например, после добавления
+    // продукта из экрана поиска), чтобы список приёмов пищи был актуальным.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) vm.load()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val data = state.data
@@ -71,13 +84,19 @@ fun CaloriesTrackerScreen(vm: CaloriesViewModel = hiltViewModel()) {
                     Spacer(Modifier.height(14.dp))
 
                     Button(
-                        onClick = { showAddDialog = true },
+                        onClick = onAddMeal,
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.large
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Добавить приём пищи")
+                    }
+                    TextButton(
+                        onClick = { showAddDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Добавить вручную")
                     }
                 }
             }

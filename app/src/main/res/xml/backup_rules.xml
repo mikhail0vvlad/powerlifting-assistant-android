@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy auto-backup rules (Android 6.0–11). Because allowBackup="false",
+  this file is effectively a no-op — kept as a belt-and-braces guarantee that
+  even if backup is re-enabled, Firebase session state and DataStore prefs are
+  excluded.
+
+  Cloud backup intentionally captures NOTHING. The user should re-authenticate
+  on a fresh device install.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="external" path="." />
+</full-backup-content>

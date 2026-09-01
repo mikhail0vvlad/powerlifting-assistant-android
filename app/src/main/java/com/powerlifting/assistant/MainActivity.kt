@@ -6,7 +6,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.powerlifting.assistant.presentation.viewmodel.SettingsViewModel
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -30,7 +34,9 @@ class MainActivity : ComponentActivity() {
         scheduleReminders()
 
         setContent {
-            PowerliftingTheme {
+            val settingsVm: SettingsViewModel = hiltViewModel()
+            val darkTheme by settingsVm.darkTheme.collectAsState()
+            PowerliftingTheme(darkTheme = darkTheme) {
                 RootNav()
             }
         }
