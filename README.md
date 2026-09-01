@@ -98,8 +98,7 @@ notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 | Сеть | Retrofit 2.11 + OkHttp 4.12 |
 | Сериализация | kotlinx.serialization (JSON) + retrofit2-kotlinx-serialization-converter |
 | Auth | Firebase Authentication (Firebase BOM 33.2.0) |
-| Хранилище | Firebase Storage, DataStore Preferences 1.1.1 |
-| Изображения | Coil Compose 2.7.0 |
+| Хранилище | DataStore Preferences 1.1.1 (тема, история поиска) |
 | Фоновые задачи | WorkManager 2.9.1 |
 | Асинхронность | Kotlin Coroutines 1.8 + StateFlow |
 | Сборка | Gradle Kotlin DSL, kapt |
@@ -118,7 +117,18 @@ notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 ./gradlew -PPOWERLIFT_SERVER_BASE_URL=https://api.example.com/ assembleRelease
 ```
 
-Для запуска требуется файл `google-services.json` (Firebase). В debug-варианте подключён `network_security_config` для работы с локальным/dev-сервером.
+Для запуска требуется `app/google-services.json` — конфигурация Firebase:
+
+1. [console.firebase.google.com](https://console.firebase.google.com) → создать проект.
+2. Add app → Android, package name `com.powerlifting_assistant`.
+3. Включить Authentication → Sign-in method → **Email/Password**.
+4. Скачать `google-services.json` и положить в `app/`.
+
+Файл в репозиторий не коммитится (он в `.gitignore`). Backend должен быть
+запущен с тем же Firebase-проектом — см.
+[powerlifting-assistant-server](https://github.com/mikhail0vvlad/powerlifting-assistant-server).
+
+В debug-варианте подключён `network_security_config` для работы с локальным/dev-сервером.
 
 > **SDK:** minSdk 26, compileSdk / targetSdk 34. Release-сборка использует minify и shrinkResources (ProGuard).
 
