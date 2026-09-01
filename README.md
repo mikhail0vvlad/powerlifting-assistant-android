@@ -29,6 +29,17 @@
 
 ---
 
+## Скриншоты
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="200" alt="Главный экран"/>
+  <img src="docs/screenshots/program.png" width="200" alt="Программа тренировок"/>
+  <img src="docs/screenshots/workout.png" width="200" alt="Журнал подходов"/>
+  <img src="docs/screenshots/nutrition.png" width="200" alt="Дневник питания"/>
+</p>
+
+---
+
 ## Функциональность
 
 | Модуль | Описание |
