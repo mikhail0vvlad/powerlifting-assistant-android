@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"/>
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black"/>
   <img src="https://img.shields.io/badge/DI-Hilt-E91E63?style=for-the-badge&logo=google&logoColor=white"/>
+  <a href="https://github.com/mikhail0vvlad/powerlifting-assistant-android/actions/workflows/android.yml"><img src="https://github.com/mikhail0vvlad/powerlifting-assistant-android/actions/workflows/android.yml/badge.svg"/></a>
 </p>
 
 <p align="center">
