@@ -5,9 +5,12 @@
 
     <application
         android:name=".PowerliftingApp"
-        android:usesCleartextTraffic="true"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="Ассистент пауэрлифтера"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PowerliftingAssistant">
 

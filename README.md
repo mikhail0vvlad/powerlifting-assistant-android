@@ -10,12 +10,13 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"/>
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black"/>
   <img src="https://img.shields.io/badge/DI-Hilt-E91E63?style=for-the-badge&logo=google&logoColor=white"/>
+  <a href="https://github.com/mikhail0vvlad/powerlifting-assistant-android/actions/workflows/android.yml"><img src="https://github.com/mikhail0vvlad/powerlifting-assistant-android/actions/workflows/android.yml/badge.svg"/></a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Architecture-MVVM-orange?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Architecture-MVVM%20%2B%20Clean-orange?style=flat-square"/>
   <img src="https://img.shields.io/badge/Min%20SDK-26-blue?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Target%20SDK-35-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Compile%20%2F%20Target%20SDK-34-blue?style=flat-square"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square"/>
 </p>
 
@@ -23,7 +24,20 @@
 
 ## О проекте
 
-**Powerlifting Assistant** — клиентская часть мобильного приложения для спортсменов-пауэрлифтеров. Приложение взаимодействует с REST API сервером, обеспечивает персонализированную генерацию программ тренировок, отслеживание питания, восстановления и личных рекордов.
+**Powerlifting Assistant** — клиентская часть мобильного приложения для спортсменов-пауэрлифтеров. Приложение взаимодействует с REST API сервером (`api/v1/...`), обеспечивает персонализированную генерацию программ тренировок, отслеживание питания, восстановления и личных рекордов.
+
+Аутентификация выполняется через Firebase Authentication; ID-токен Firebase передаётся серверу в заголовке `Authorization: Bearer <token>` каждого запроса.
+
+---
+
+## Скриншоты
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="200" alt="Главный экран"/>
+  <img src="docs/screenshots/program.png" width="200" alt="Программа тренировок"/>
+  <img src="docs/screenshots/workout.png" width="200" alt="Журнал подходов"/>
+  <img src="docs/screenshots/nutrition.png" width="200" alt="Дневник питания"/>
+</p>
 
 ---
 
@@ -31,41 +45,57 @@
 
 | Модуль | Описание |
 |--------|----------|
-| **Авторизация** | Firebase Auth (email + password), автоматическое определение сессии при запуске |
-| **Главная** | Сводные карточки (калории, ИМТ, достижения), календарь тренировок, быстрые действия |
-| **Программа** | Генерация персональной программы на сервере, просмотр ближайших тренировок |
-| **Восстановление** | Опросник (сон, самочувствие, усталость) → рекомендация от сервера → старт тренировки |
-| **Тренировка** | Журнал подходов (вес, повторения, RPE), таймер, завершение с оценкой |
-| **История** | Список прошедших тренировок с длительностью и статусом самочувствия |
-| **Питание** | Дневник калорий и белка, цели по КБЖУ, добавление/удаление приёмов пищи |
-| **Достижения** | Личные рекорды и памятные события: добавление и удаление записей |
+| **Авторизация** | Firebase Auth (email + password), определение активной сессии при запуске (`RootNav`) |
+| **Главная** | Сводные карточки (калории, ИМТ, достижения), быстрые действия, переход к восстановлению/программе |
+| **Программа** | Генерация персональной программы на сервере, активная программа, календарь, перенос/пропуск тренировок |
+| **Восстановление** | Опросник (сон, самочувствие, усталость) → старт тренировочной сессии на сервере |
+| **Тренировка** | Журнал подходов (вес, повторения, RPE), завершение сессии с итоговой оценкой |
+| **История** | Список прошедших тренировок; удаление сессий |
+| **Питание** | Дневник КБЖУ на день, цели по калориям/белку, добавление и удаление приёмов пищи |
+| **Поиск продуктов** | Поиск по локальному справочнику базовых продуктов + история выбора (DataStore) |
+| **Достижения** | Личные рекорды и памятные события: создание и удаление записей |
 | **Калькулятор** | Подбор блинов на штангу по заданному рабочему весу |
-| **ИМТ** | Расчёт индекса массы тела с интерпретацией результата |
-| **Профиль** | 1RM по приседу, жиму и тяге, рост, вес, цели по питанию |
-| **Уведомления** | WorkManager-напоминания о тренировках |
+| **ИМТ** | Расчёт индекса массы тела с интерпретацией |
+| **Профиль** | 1RM по приседу/жиму/тяге, рост, вес, цели по питанию; выход из аккаунта |
+| **Тема** | Переключение тёмной/светлой темы, сохранение в DataStore |
+| **Уведомления** | WorkManager-напоминание (`ReminderWorker`) о питании и календаре |
+
+Нижняя навигация — **5 вкладок**: Калькулятор · История · Главная · Помощь · Профиль. Экраны тренировки и восстановления открываются полноэкранно (без нижней панели).
 
 ---
 
 ## Архитектура
 
+Проект построен по принципам **Clean Architecture** с разделением на три слоя и MVVM в presentation:
+
 ```
 presentation/
 ├── screens/          ← Jetpack Compose UI (экраны)
-├── viewmodel/        ← ViewModel + StateFlow
-└── navigation/       ← NavHost + BottomBar (5 вкладок)
+├── viewmodel/        ← ViewModel + StateFlow, ErrorMapper
+├── navigation/       ← RootNav (auth → main) + MainScaffold (NavHost + BottomBar)
+└── theme/            ← Material 3 тема
+
+domain/
+├── model/            ← Доменные модели (Workout, Program, Nutrition, Achievement, FoodProduct…)
+├── repository/       ← Интерфейсы репозиториев
+└── usecase/          ← Use case-классы (profile, program, workout, nutrition, achievements)
 
 data/
-├── api/              ← Retrofit интерфейс + DTO-модели
-├── repo/             ← Репозитории (Profile, Workout, Nutrition, Achievements, Program)
-└── auth/             ← Firebase токен-провайдер
+├── api/              ← Retrofit-интерфейс PowerliftingApi + DTO (ApiModels)
+├── repo/             ← Реализации репозиториев
+├── mapper/           ← DTO → доменные модели
+├── cache/            ← AppCache + MemoryCache (in-memory TTL-кэш)
+├── auth/             ← FirebaseTokenProvider (Bearer-токен)
+└── local/            ← AppPreferences (DataStore: тема, история поиска)
 
-di/                   ← Hilt модули
+di/                   ← Hilt-модули (NetworkModule, RepositoryModule)
 notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 ```
 
-**Паттерн:** MVVM + Repository  
-**DI:** Hilt (SingletonComponent)  
-**Навигация:** Navigation Compose — `auth → main`, внутри main — 5 вкладок + вложенные маршруты
+**Паттерн:** MVVM + Clean Architecture (UseCase + Repository)
+**DI:** Dagger Hilt (`@HiltAndroidApp`, `SingletonComponent`)
+**Навигация:** Navigation Compose — `auth → main`, внутри `main` — 5 вкладок и вложенные маршруты (`calories`, `foodSearch`, `bmi`, `program`, `recovery`, `achievements`, `workout/{sessionId}`)
+**Кэширование:** `MemoryCache` с TTL (профиль, питание, программа, календарь, история, достижения), инвалидация после изменений и при смене пользователя
 
 ---
 
@@ -73,63 +103,52 @@ notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 
 | Категория | Библиотека / Инструмент |
 |-----------|------------------------|
-| Язык | Kotlin 1.9 |
-| UI | Jetpack Compose + Material 3 |
-| Навигация | Navigation Compose |
-| DI | Dagger Hilt 2.51 |
-| Сеть | Retrofit 2 + OkHttp |
-| Сериализация | kotlinx.serialization |
-| Auth | Firebase Authentication |
-| Фоновые задачи | WorkManager |
-| Архитектура | MVVM, StateFlow, Coroutines |
-| Сборка | Gradle Kotlin DSL |
+| Язык | Kotlin (JVM target 17) |
+| UI | Jetpack Compose (BOM 2024.06.00) + Material 3 + Material Icons Extended |
+| Навигация | Navigation Compose 2.8.0 |
+| DI | Dagger Hilt 2.51.1 + hilt-navigation-compose |
+| Сеть | Retrofit 2.11 + OkHttp 4.12 |
+| Сериализация | kotlinx.serialization (JSON) + retrofit2-kotlinx-serialization-converter |
+| Auth | Firebase Authentication (Firebase BOM 33.2.0) |
+| Хранилище | DataStore Preferences 1.1.1 (тема, история поиска) |
+| Фоновые задачи | WorkManager 2.9.1 |
+| Асинхронность | Kotlin Coroutines 1.8 + StateFlow |
+| Сборка | Gradle Kotlin DSL, kapt |
 
 ---
 
-## Быстрый старт
+## Сборка
 
-### 1. Firebase
-
-Замените заглушку на свой конфигурационный файл:
-
-```
-app/google-services.json   ← ваш файл из Firebase Console
-```
-
-> Текущий файл в репозитории — **заглушка**. Авторизация не будет работать без реального Firebase-проекта.
-
-### 2. URL сервера
-
-По умолчанию приложение обращается к `http://10.0.2.2:8080/` (эмулятор → localhost).
-
-Для подключения к удалённому серверу передайте Gradle-property при сборке:
+Базовый URL сервера задаётся через `BuildConfig.SERVER_BASE_URL`. Для отладочных сборок используется dev-URL по умолчанию; **release-сборка падает**, если не передан параметр `POWERLIFT_SERVER_BASE_URL`:
 
 ```bash
-./gradlew :app:assembleDebug -PPOWERLIFT_SERVER_BASE_URL="https://your-server.example.com/"
+# Debug (по умолчанию используется dev-URL)
+./gradlew assembleDebug
+
+# Release (обязателен явный URL сервера)
+./gradlew -PPOWERLIFT_SERVER_BASE_URL=https://api.example.com/ assembleRelease
 ```
 
-### 3. HTTP (cleartext)
+Для запуска требуется `app/google-services.json` — конфигурация Firebase:
 
-В `AndroidManifest.xml` включено `android:usesCleartextTraffic="true"` для работы с локальным `http://`-сервером. При деплое на продакшн используйте HTTPS и отключите этот флаг.
+1. [console.firebase.google.com](https://console.firebase.google.com) → создать проект.
+2. Add app → Android, package name `com.powerlifting_assistant`.
+3. Включить Authentication → Sign-in method → **Email/Password**.
+4. Скачать `google-services.json` и положить в `app/`.
 
----
+Файл в репозиторий не коммитится (он в `.gitignore`). Backend должен быть
+запущен с тем же Firebase-проектом — см.
+[powerlifting-assistant-server](https://github.com/mikhail0vvlad/powerlifting-assistant-server).
 
-## Тесты
+В debug-варианте подключён `network_security_config` для работы с локальным/dev-сервером.
 
-```bash
-./gradlew :app:testDebugUnitTest
-```
-
-| Тест | Покрытие |
-|------|----------|
-| `PlateCalculatorTest` | Алгоритм подбора блинов |
-| `WorkoutFlowTest` | Логика тренировочного потока |
+> **SDK:** minSdk 26, compileSdk / targetSdk 34. Release-сборка использует minify и shrinkResources (ProGuard).
 
 ---
 
 ## Связанные репозитории
 
-> Серверная часть (REST API) разрабатывается отдельно. Клиент ожидает API по схеме, описанной в `PowerliftingApi.kt`.
+> Серверная часть (REST API) разрабатывается отдельно. Клиент ожидает API по схеме, описанной в [`PowerliftingApi.kt`](app/src/main/java/com/powerlifting/assistant/data/api/PowerliftingApi.kt).
 
 ---
 

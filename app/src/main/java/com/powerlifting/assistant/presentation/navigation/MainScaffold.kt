@@ -104,7 +104,14 @@ fun MainScaffold(onLogout: () -> Unit) {
                 )
             }
 
-            composable("calories") { CaloriesTrackerScreen() }
+            composable("calories") {
+                CaloriesTrackerScreen(
+                    onAddMeal = { navController.navigate("foodSearch") }
+                )
+            }
+            composable("foodSearch") {
+                FoodSearchScreen(onBack = { navController.popBackStack() })
+            }
             composable("bmi") { BmiScreen() }
             composable("program") { ProgramScreen() }
             composable("recovery") {

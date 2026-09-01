@@ -56,13 +56,6 @@ fun AchievementsScreen(vm: AchievementsViewModel = hiltViewModel()) {
             }
 
             Spacer(Modifier.height(10.dp))
-
-            Text(
-                "MVP: фото можно хранить в Firebase Storage и сохранять URL в достижение.\n" +
-                    "В проекте уже подключён firebase-storage-ktx — можно добавить выбор изображения и загрузку.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
         }
 
         if (showDialog) {

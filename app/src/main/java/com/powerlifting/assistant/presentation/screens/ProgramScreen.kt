@@ -3,13 +3,16 @@ package com.powerlifting.assistant.presentation.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.powerlifting.assistant.domain.model.ProgramWorkout
 import com.powerlifting.assistant.domain.model.WorkoutStatus
@@ -21,6 +24,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+
+private val SectionSpacing = 16.dp
+private val ControlSpacing = 8.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,34 +44,54 @@ fun ProgramScreen(vm: ProgramViewModel = hiltViewModel()) {
     val active = state.active
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(SectionSpacing),
+            verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+        ) {
             Text("Программа", style = MaterialTheme.typography.headlineSmall)
-            Text("Тренировочный план от ваших ПМ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+            Text(
+                "Тренировочный план от ваших ПМ",
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(SectionSpacing - ControlSpacing))
 
             if (state.profileMissingMaxes) {
-                ElevatedCard(shape = MaterialTheme.shapes.large) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Перед стартом нужно указать ПМ", style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(6.dp))
+                ElevatedCard(
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(SectionSpacing),
+                        verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+                    ) {
+                        Text(
+                            "Перед стартом нужно указать ПМ",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         Text(
                             "Заполните в профиле предельный максимум (1ПМ) в жиме, приседе и тяге.",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
             }
 
             when {
                 state.loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 active == null -> Text("Не удалось загрузить данные.")
                 active.program == null -> {
-                    ElevatedCard(shape = MaterialTheme.shapes.large) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                    ElevatedCard(
+                        shape = MaterialTheme.shapes.large,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(SectionSpacing),
+                            verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+                        ) {
                             Text("У вас нет активной программы.")
-                            Spacer(Modifier.height(10.dp))
                             Button(
                                 onClick = { showCreateDialog = true },
                                 enabled = !state.profileMissingMaxes,
@@ -75,40 +101,65 @@ fun ProgramScreen(vm: ProgramViewModel = hiltViewModel()) {
                     }
                 }
                 else -> {
-                    ElevatedCard(shape = MaterialTheme.shapes.large) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                    ElevatedCard(
+                        shape = MaterialTheme.shapes.large,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(SectionSpacing),
+                            verticalArrangement = Arrangement.spacedBy(ControlSpacing / 2)
+                        ) {
                             Text(active.program.name, style = MaterialTheme.typography.titleMedium)
-                            Text("Старт: ${active.program.startDate} • ${active.program.weeks} нед.", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                "Старт: ${active.program.startDate} • ${active.program.weeks} нед.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
 
                     if (active.upcomingWorkouts.isEmpty()) {
-                        ElevatedCard(shape = MaterialTheme.shapes.large) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Программа завершена", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.height(6.dp))
-                                Text("Все тренировки пройдены или пропущены. Создайте новую программу.", style = MaterialTheme.typography.bodySmall)
-                                Spacer(Modifier.height(10.dp))
-                                Button(onClick = { showCreateDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                        ElevatedCard(
+                            shape = MaterialTheme.shapes.large,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(SectionSpacing),
+                                verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+                            ) {
+                                Text(
+                                    "Программа завершена",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    "Все тренировки пройдены или пропущены. Создайте новую программу.",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Button(
+                                    onClick = { showCreateDialog = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     Text("Новая программа")
                                 }
                             }
                         }
                     } else {
-                        Text("Тренировки", style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Тренировки",
+                            style = MaterialTheme.typography.titleMedium
+                        )
 
                         LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth().weight(1f)
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
                         ) {
                             items(active.upcomingWorkouts, key = { it.id }) { w ->
                                 WorkoutCard(w, onClick = { actionWorkout = w })
                             }
                         }
 
-                        Spacer(Modifier.height(12.dp))
                         OutlinedButton(
                             onClick = { showCreateDialog = true },
                             modifier = Modifier.fillMaxWidth()
@@ -118,11 +169,9 @@ fun ProgramScreen(vm: ProgramViewModel = hiltViewModel()) {
             }
 
             state.error?.let {
-                Spacer(Modifier.height(10.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
             if (state.mutating) {
-                Spacer(Modifier.height(10.dp))
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
@@ -158,8 +207,9 @@ fun ProgramScreen(vm: ProgramViewModel = hiltViewModel()) {
     }
 
     rescheduleWorkout?.let { w ->
-        DatePickerDialogSheet(
+        DatePickerModal(
             initialDate = parseLocalDate(w.date) ?: LocalDate.now(),
+            confirmText = "Перенести",
             onDismiss = { rescheduleWorkout = null },
             onPick = { picked ->
                 vm.reschedule(w.id, picked)
@@ -190,20 +240,35 @@ private fun WorkoutCard(w: ProgramWorkout, onClick: () -> Unit) {
         onClick = onClick,
         enabled = statusEnum == WorkoutStatus.PLANNED || statusEnum == WorkoutStatus.MISSED
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(
+            modifier = Modifier.padding(SectionSpacing),
+            verticalArrangement = Arrangement.spacedBy(ControlSpacing / 2)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(w.title, style = titleStyle, modifier = Modifier.weight(1f))
-                AssistChip(onClick = {}, label = { Text(statusLabel, color = statusColor) }, enabled = false)
+                Spacer(Modifier.width(ControlSpacing))
+                AssistChip(
+                    onClick = {},
+                    label = { Text(statusLabel, color = statusColor) },
+                    enabled = false
+                )
             }
-            Text(w.date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-            Spacer(Modifier.height(10.dp))
+            Text(
+                w.date,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+            Spacer(Modifier.height(ControlSpacing / 2))
             w.exercises.sortedBy { it.orderIndex }.forEach { ex ->
                 val percent = ex.percent1rm?.let { " • ${String.format("%.0f", it * 100)}% 1ПМ" } ?: ""
-                Text("• ${ex.exerciseName}: ${ex.sets}x${ex.reps}$percent", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "• ${ex.exerciseName}: ${ex.sets}x${ex.reps}$percent",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -217,27 +282,60 @@ private fun WorkoutActionDialog(
     onReschedule: () -> Unit,
     onSkip: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(workout.title) },
-        text = {
-            Column {
-                Text(workout.date, style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(12.dp))
-                Text("Что сделать с этой тренировкой?")
-            }
-        },
-        confirmButton = {
-            Column {
-                TextButton(onClick = onComplete, modifier = Modifier.fillMaxWidth()) { Text("✅ Отметить выполненной") }
-                TextButton(onClick = onReschedule, modifier = Modifier.fillMaxWidth()) { Text("⏭ Перенести на другую дату") }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+            ) {
+                Text(workout.title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    workout.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(Modifier.height(ControlSpacing))
+
+                Text(
+                    "Что сделать с этой тренировкой?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(Modifier.height(ControlSpacing))
+
+                FilledTonalButton(
+                    onClick = onComplete,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("✅ Отметить выполненной") }
+
+                OutlinedButton(
+                    onClick = onReschedule,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("⏭ Перенести на другую дату") }
+
                 if (workout.statusEnum == WorkoutStatus.PLANNED) {
-                    TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) { Text("❌ Пропустить") }
+                    OutlinedButton(
+                        onClick = onSkip,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("❌ Пропустить") }
                 }
+
+                Spacer(Modifier.height(ControlSpacing))
+
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) { Text("Отмена") }
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
-    )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -246,66 +344,161 @@ private fun CreateProgramDialog(
     onDismiss: () -> Unit,
     onConfirm: (LocalDate, Int, Set<DayOfWeek>) -> Unit
 ) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    )
     var weeks by remember { mutableStateOf(4) }
     var selectedDays by remember {
         mutableStateOf(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY))
     }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Создать программу") },
+        title = { Text("Создать программу", style = MaterialTheme.typography.titleLarge) },
         text = {
-            Column {
-                Text("Тренировочные дни недели:", style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.height(8.dp))
-                FlowWeekdayPicker(selected = selectedDays, onToggle = { day ->
-                    selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
-                })
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(SectionSpacing)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(ControlSpacing)) {
+                    Text(
+                        "Тренировочные дни недели",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    WeekdayGrid(
+                        selected = selectedDays,
+                        onToggle = { day ->
+                            selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
+                        }
+                    )
+                }
 
-                Spacer(Modifier.height(16.dp))
-                Text("Длительность: $weeks нед.", style = MaterialTheme.typography.bodyMedium)
-                Slider(
-                    value = weeks.toFloat(),
-                    onValueChange = { weeks = it.toInt() },
-                    valueRange = 1f..12f,
-                    steps = 10
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(ControlSpacing)) {
+                    Text(
+                        "Длительность: $weeks нед.",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Slider(
+                        value = weeks.toFloat(),
+                        onValueChange = { weeks = it.toInt() },
+                        valueRange = 1f..12f,
+                        steps = 10,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-                Spacer(Modifier.height(8.dp))
-                Text("Дата старта:", style = MaterialTheme.typography.bodyMedium)
-                DatePicker(state = datePickerState, showModeToggle = false, title = null, headline = null)
+                Column(verticalArrangement = Arrangement.spacedBy(ControlSpacing)) {
+                    Text(
+                        "Дата старта",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    DateField(
+                        date = selectedDate,
+                        onClick = { showDatePicker = true }
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(
-                enabled = selectedDays.isNotEmpty() && datePickerState.selectedDateMillis != null,
-                onClick = {
-                    val millis = datePickerState.selectedDateMillis ?: return@TextButton
-                    val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
-                    onConfirm(date, weeks, selectedDays)
-                }
+                enabled = selectedDays.isNotEmpty(),
+                onClick = { onConfirm(selectedDate, weeks, selectedDays) }
             ) { Text("Создать") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     )
+
+    if (showDatePicker) {
+        DatePickerModal(
+            initialDate = selectedDate,
+            confirmText = "Выбрать",
+            onDismiss = { showDatePicker = false },
+            onPick = {
+                selectedDate = it
+                showDatePicker = false
+            }
+        )
+    }
 }
 
 @Composable
-private fun FlowWeekdayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
+private fun WeekdayGrid(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
     val order = listOf(
-        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
-        DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
+        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        order.forEach { day ->
-            val label = day.getDisplayName(TextStyle.SHORT, Locale("ru")).take(2)
-            FilterChip(
-                selected = day in selected,
-                onClick = { onToggle(day) },
-                label = { Text(label) }
+    val columns = 4
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ControlSpacing)
+    ) {
+        order.chunked(columns).forEach { rowDays ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ControlSpacing)
+            ) {
+                rowDays.forEach { day ->
+                    WeekdayChip(
+                        day = day,
+                        selected = day in selected,
+                        onToggle = onToggle,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                repeat(columns - rowDays.size) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekdayChip(
+    day: DayOfWeek,
+    selected: Boolean,
+    onToggle: (DayOfWeek) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val label = day.getDisplayName(TextStyle.SHORT, Locale("ru")).take(2)
+    FilterChip(
+        selected = selected,
+        onClick = { onToggle(day) },
+        label = {
+            Text(
+                label,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateField(date: LocalDate, onClick: () -> Unit) {
+    val formatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru")) }
+    OutlinedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = SectionSpacing, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ControlSpacing)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CalendarMonth,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                date.format(formatter),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -313,13 +506,15 @@ private fun FlowWeekdayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) ->
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DatePickerDialogSheet(
+private fun DatePickerModal(
     initialDate: LocalDate,
+    confirmText: String,
     onDismiss: () -> Unit,
     onPick: (LocalDate) -> Unit
 ) {
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        initialSelectedDateMillis = initialDate
+            .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
     DatePickerDialog(
         onDismissRequest = onDismiss,
@@ -327,10 +522,11 @@ private fun DatePickerDialogSheet(
             TextButton(
                 onClick = {
                     val millis = datePickerState.selectedDateMillis ?: return@TextButton
-                    val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    val date = Instant.ofEpochMilli(millis)
+                        .atZone(ZoneId.systemDefault()).toLocalDate()
                     onPick(date)
                 }
-            ) { Text("Перенести") }
+            ) { Text(confirmText) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     ) {
