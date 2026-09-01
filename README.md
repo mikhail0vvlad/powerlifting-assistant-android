@@ -148,7 +148,7 @@ notifications/        ← WorkManager (ReminderWorker, NotificationUtils)
 
 ## Связанные репозитории
 
-> Серверная часть (REST API) разрабатывается отдельно. Клиент ожидает API по схеме, описанной в [`PowerliftingApi.kt`](app/src/main/java/com/powerlifting/assistant/data/api/PowerliftingApi.kt).
+> Серверная часть: **[powerlifting-assistant-server](https://github.com/mikhail0vvlad/powerlifting-assistant-server)** — Ktor + PostgreSQL. Контракт DTO зеркален `data/api/ApiModels.kt`.
 
 ---
 
